@@ -19,6 +19,7 @@ package app.tivi.data.repositories.shows
 import app.tivi.data.entities.Success
 import app.tivi.data.entities.TiviShow
 import app.tivi.data.resultentities.ShowDetailed
+import app.tivi.extensions.doSingleLaunch
 import app.tivi.inject.Trakt
 import org.threeten.bp.Instant
 import javax.inject.Inject
@@ -41,7 +42,7 @@ class ShowRepositoryImpl @Inject constructor(
     /**
      * Updates the show with the given id from all network sources, saves the result to the database
      */
-    override suspend fun updateShow(showId: Long) {
+    override suspend fun updateShow(showId: Long) = doSingleLaunch("update_show_$showId") {
         val traktResult = traktShowDataSource.getShow(showStore.getShowOrEmpty(showId))
         if (traktResult is Success) {
             showStore.updateShowFromSources(showId, traktResult.get())
@@ -51,7 +52,7 @@ class ShowRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateShowImages(showId: Long) {
+    override suspend fun updateShowImages(showId: Long) = doSingleLaunch("update_show_images_$showId") {
         val show = showStore.getShow(showId)
                 ?: throw IllegalArgumentException("Show with ID $showId does not exist")
         when (val result = tmdbShowImagesDataSource.getShowImages(show)) {
